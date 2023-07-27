@@ -34,35 +34,6 @@ Resources:
               responses: {}
       EndpointConfiguration: REGIONAL
       TracingEnabled: true
-  Bucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub ${AWS::StackName}-bucket-${AWS::AccountId}
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: aws:kms
-              KMSMasterKeyID: alias/aws/s3
-      PublicAccessBlockConfiguration:
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-  BucketBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref Bucket
-      PolicyDocument:
-        Id: RequireEncryptionInTransit
-        Version: '2012-10-17'
-        Statement:
-          - Principal: '*'
-            Action: '*'
-            Effect: Deny
-            Resource:
-              - !GetAtt Bucket.Arn
-              - !Sub ${Bucket.Arn}/*
-            Condition:
-              Bool:
-                aws:SecureTransport: 'false'
   PostDocument:
     Type: AWS::Serverless::Function
     Properties:
@@ -77,8 +48,8 @@ Resources:
       Tracing: Active
       Environment:
         Variables:
-          BUCKET_BUCKET_NAME: !Ref Bucket
-          BUCKET_BUCKET_ARN: !GetAtt Bucket.Arn
+          DOCUMENTBUCKET_BUCKET_NAME: !Ref DocumentBucket
+          DOCUMENTBUCKET_BUCKET_ARN: !GetAtt DocumentBucket.Arn
       Policies:
         - Statement:
             - Effect: Allow
@@ -104,8 +75,8 @@ Resources:
                 - s3:PutObjectRetention
                 - s3:RestoreObject
               Resource:
-                - !Sub arn:${AWS::Partition}:s3:::${Bucket}
-                - !Sub arn:${AWS::Partition}:s3:::${Bucket}/*
+                - !Sub arn:${AWS::Partition}:s3:::${DocumentBucket}
+                - !Sub arn:${AWS::Partition}:s3:::${DocumentBucket}/*
       Events:
         ApiPOSTDocument:
           Type: Api
@@ -132,8 +103,8 @@ Resources:
       Tracing: Active
       Environment:
         Variables:
-          BUCKET_BUCKET_NAME: !Ref Bucket
-          BUCKET_BUCKET_ARN: !GetAtt Bucket.Arn
+          DOCUMENTBUCKET_BUCKET_NAME: !Ref DocumentBucket
+          DOCUMENTBUCKET_BUCKET_ARN: !GetAtt DocumentBucket.Arn
       Policies:
         - Statement:
             - Effect: Allow
@@ -159,8 +130,8 @@ Resources:
                 - s3:PutObjectRetention
                 - s3:RestoreObject
               Resource:
-                - !Sub arn:${AWS::Partition}:s3:::${Bucket}
-                - !Sub arn:${AWS::Partition}:s3:::${Bucket}/*
+                - !Sub arn:${AWS::Partition}:s3:::${DocumentBucket}
+                - !Sub arn:${AWS::Partition}:s3:::${DocumentBucket}/*
       Events:
         ApiGETDocuments:
           Type: Api
@@ -187,8 +158,8 @@ Resources:
       Tracing: Active
       Environment:
         Variables:
-          BUCKET_BUCKET_NAME: !Ref Bucket
-          BUCKET_BUCKET_ARN: !GetAtt Bucket.Arn
+          DOCUMENTBUCKET_BUCKET_NAME: !Ref DocumentBucket
+          DOCUMENTBUCKET_BUCKET_ARN: !GetAtt DocumentBucket.Arn
       Policies:
         - Statement:
             - Effect: Allow
@@ -214,8 +185,8 @@ Resources:
                 - s3:PutObjectRetention
                 - s3:RestoreObject
               Resource:
-                - !Sub arn:${AWS::Partition}:s3:::${Bucket}
-                - !Sub arn:${AWS::Partition}:s3:::${Bucket}/*
+                - !Sub arn:${AWS::Partition}:s3:::${DocumentBucket}
+                - !Sub arn:${AWS::Partition}:s3:::${DocumentBucket}/*
       Events:
         ApiPOSTChat:
           Type: Api
@@ -228,3 +199,32 @@ Resources:
     DeletionPolicy: Retain
     Properties:
       LogGroupName: !Sub /aws/lambda/${PostChat}
+  DocumentBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-documentb-${AWS::AccountId}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: alias/aws/s3
+      PublicAccessBlockConfiguration:
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+  DocumentBucketBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref DocumentBucket
+      PolicyDocument:
+        Id: RequireEncryptionInTransit
+        Version: '2012-10-17'
+        Statement:
+          - Principal: '*'
+            Action: '*'
+            Effect: Deny
+            Resource:
+              - !GetAtt DocumentBucket.Arn
+              - !Sub ${DocumentBucket.Arn}/*
+            Condition:
+              Bool:
+                aws:SecureTransport: 'false'
