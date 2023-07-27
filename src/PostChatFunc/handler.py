@@ -1,5 +1,6 @@
 import json
 import requests
+import os
 
 def handler(event, context):
     # Parse the event argument to extract the document content and the question.
@@ -11,7 +12,7 @@ def handler(event, context):
     input_text = f"{pre_prompt}\n{question}\n{document_content}"
 
     # Make a call to the GPT-4 API using the concatenated string.
-    response = requests.post('https://api.openai.com/v1/engines/davinci-codex/completions', headers={'Authorization': 'Bearer YOUR_API_KEY'}, data={'prompt': input_text, 'max_tokens': 100})
+    response = requests.post('https://api.openai.com/v1/engines/davinci-codex/completions', headers={'Authorization': 'Bearer ' + os.getenv('GPT4_API_KEY')}, data={'prompt': input_text, 'max_tokens': 100})
 
     # Return the response from the GPT-4 API as a string.
     return response.text
